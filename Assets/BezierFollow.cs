@@ -13,7 +13,7 @@ public class BezierFollow : MonoBehaviour
 
     private Vector3 objectPosition;
 
-    public float speedModifier;
+    private float speedModifier;
 
     private bool coroutineAllowed;
 
@@ -22,7 +22,7 @@ public class BezierFollow : MonoBehaviour
     {
         routeToGo = 0;
         tParam = 0f;
-        speedModifier = 0.5f;
+        speedModifier = 0.1f;
         coroutineAllowed = true;
     }
 
