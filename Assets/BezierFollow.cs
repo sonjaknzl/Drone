@@ -50,6 +50,13 @@ public class BezierFollow : MonoBehaviour
 
             objectPosition = Mathf.Pow(1 - tParam, 3) * p0 + 3 * Mathf.Pow(1 - tParam, 2) * tParam * p1 + 3 * (1 - tParam) * Mathf.Pow(tParam, 2) * p2 + Mathf.Pow(tParam, 3) * p3;
 
+
+            Vector3 dir = objectPosition - transform.position;
+ 
+            float angle = Mathf.Atan2(dir.y, dir.z) * Mathf.Rad2Deg;
+ 
+            transform.rotation = Quaternion.Euler(-90.0f, angle, angle);
+
             transform.position = objectPosition;
             yield return new WaitForEndOfFrame();
         }
