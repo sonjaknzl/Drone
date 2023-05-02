@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
+using System.Collections;
 
 namespace BezierSolution
 {
@@ -8,7 +9,16 @@ namespace BezierSolution
 	public class BezierWalkerWithSpeed : BezierWalker
 	{
 		public BezierSpline spline;
+		public GameObject boardComputer;
+		public Sprite newDisplay;
+		public GameObject[] lightsArray;
+
 		public TravelMode travelMode;
+		private int count = 0;
+
+		public Animator animator;
+
+		public BezierSpline[] mySplines;
 
 		public float speed = 5f;
 		[SerializeField]
@@ -23,6 +33,36 @@ namespace BezierSolution
 			set { m_normalizedT = value; }
 		}
 
+		IEnumerator switchSpline(){
+			yield return new WaitForSeconds(2f);
+			if(count < mySplines.Length){
+				if(count == 1){
+					// switch sprite
+					SpriteRenderer mySpriteRenderer = boardComputer.GetComponent<SpriteRenderer>();
+					mySpriteRenderer.sprite = newDisplay;
+					// TURN ALL THE LIGHTS ON
+					foreach (GameObject lightObject in lightsArray)
+					{
+						Light lightComponent = lightObject.GetComponent<Light>();
+						if (lightComponent != null)
+						{
+							lightComponent.enabled = true;
+						}
+					}
+				} 
+				spline = mySplines[count];
+				m_normalizedT = 0f;
+				onPathCompletedCalledAt1 = false;
+				onPathCompletedCalledAt0 = false;
+				isGoingForward = true;
+				count++;
+			}
+		}
+		IEnumerator wait(){
+			yield return new WaitForSeconds(4f);
+			Execute(Time.deltaTime);
+		}
+
 		//public float movementLerpModifier = 10f;
 		public float rotationLerpModifier = 10f;
 
@@ -35,6 +75,18 @@ namespace BezierSolution
 		private bool onPathCompletedCalledAt1 = false;
 		private bool onPathCompletedCalledAt0 = false;
 
+		public void Start()
+		{
+			foreach (GameObject lightObject in lightsArray)
+				{
+					Light lightComponent = lightObject.GetComponent<Light>();
+					if (lightComponent != null)
+					{
+						lightComponent.enabled = false;
+					}
+					}
+		}
+
 		private void Update()
 		{
 			Execute( Time.deltaTime );
@@ -42,6 +94,7 @@ namespace BezierSolution
 
 		public override void Execute( float deltaTime )
 		{
+			
 			float targetSpeed = ( isGoingForward ) ? speed : -speed;
 
 			Vector3 targetPos = spline.MoveAlongSpline( ref m_normalizedT, targetSpeed * deltaTime );
@@ -51,15 +104,20 @@ namespace BezierSolution
 
 			bool movingForward = MovingForward;
 
+
 			if( lookAt == LookAtMode.Forward )
 			{
 				BezierSpline.Segment segment = spline.GetSegmentAt( m_normalizedT );
 				Quaternion targetRotation;
-				if( movingForward )
-					targetRotation = Quaternion.LookRotation( segment.GetTangent(), segment.GetNormal() );
-				else
-					targetRotation = Quaternion.LookRotation( -segment.GetTangent(), segment.GetNormal() );
-
+				float newXRotation = 0f; // Set the new x rotation value
+				if( movingForward ){
+				
+					targetRotation = Quaternion.LookRotation( segment.GetTangent());
+					targetRotation = Quaternion.Euler(newXRotation, targetRotation.eulerAngles.y, targetRotation.eulerAngles.z);}
+				else{
+					targetRotation = Quaternion.LookRotation( -segment.GetTangent());
+					targetRotation = Quaternion.Euler(newXRotation, targetRotation.eulerAngles.y, targetRotation.eulerAngles.z);
+				}
 				transform.rotation = Quaternion.Lerp( transform.rotation, targetRotation, rotationLerpModifier * deltaTime );
 			}
 			else if( lookAt == LookAtMode.SplineExtraData )
@@ -82,15 +140,19 @@ namespace BezierSolution
 					if( !onPathCompletedCalledAt1 )
 					{
 						onPathCompletedCalledAt1 = true;
+
+
 #if UNITY_EDITOR
 						if( UnityEditor.EditorApplication.isPlaying )
 #endif
 							onPathCompleted.Invoke();
+							 StartCoroutine(switchSpline());
 					}
 				}
 				else
 				{
 					onPathCompletedCalledAt1 = false;
+					
 				}
 			}
 			else
@@ -114,6 +176,8 @@ namespace BezierSolution
 						if( UnityEditor.EditorApplication.isPlaying )
 #endif
 							onPathCompleted.Invoke();
+
+							onPathCompletedCalledAt0 = false;
 					}
 				}
 				else
