@@ -14,6 +14,7 @@ namespace BezierSolution
 		public GameObject oldFrontDisplay;
 		public Sprite newDisplay;
 		public GameObject[] lightsArray;
+		public GameObject[] lightsArray2;
 
 		public TravelMode travelMode;
 		private int count = 0;
@@ -51,6 +52,15 @@ namespace BezierSolution
 						if (lightComponent != null)
 						{
 							lightComponent.enabled = true;
+						}
+					}
+					// TURN ALL THE LIGHTS OFF
+					foreach (GameObject lightObject in lightsArray2)
+					{
+						Light lightComponent2 = lightObject.GetComponent<Light>();
+						if (lightComponent2 != null)
+						{
+							lightComponent2.enabled = false;
 						}
 					}
 				} 
