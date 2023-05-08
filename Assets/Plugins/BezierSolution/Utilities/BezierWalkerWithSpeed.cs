@@ -10,6 +10,8 @@ namespace BezierSolution
 	{
 		public BezierSpline spline;
 		public GameObject boardComputer;
+		public GameObject frontDisplay;
+		public GameObject oldFrontDisplay;
 		public Sprite newDisplay;
 		public GameObject[] lightsArray;
 
@@ -40,6 +42,8 @@ namespace BezierSolution
 					// switch sprite
 					SpriteRenderer mySpriteRenderer = boardComputer.GetComponent<SpriteRenderer>();
 					mySpriteRenderer.sprite = newDisplay;
+					frontDisplay.SetActive(true);
+					oldFrontDisplay.SetActive(false);
 					// TURN ALL THE LIGHTS ON
 					foreach (GameObject lightObject in lightsArray)
 					{
