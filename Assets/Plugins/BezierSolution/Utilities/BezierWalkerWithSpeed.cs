@@ -118,6 +118,17 @@ namespace BezierSolution
 
 			bool movingForward = MovingForward;
 
+			if( m_normalizedT >= 0.98f){
+				speed = 0.5f;
+			}
+			if( m_normalizedT >= 0.95f){
+				speed = 1f;
+			}
+			else if( m_normalizedT >= 0.89f){
+				speed = 3f;
+			} else{
+				speed = 5f;
+			}
 
 			if( lookAt == LookAtMode.Forward )
 			{
@@ -125,7 +136,6 @@ namespace BezierSolution
 				Quaternion targetRotation;
 				float newXRotation = 0f; // Set the new x rotation value
 				if( movingForward ){
-				
 					targetRotation = Quaternion.LookRotation( segment.GetTangent());
 					targetRotation = Quaternion.Euler(newXRotation, targetRotation.eulerAngles.y, targetRotation.eulerAngles.z);}
 				else{
