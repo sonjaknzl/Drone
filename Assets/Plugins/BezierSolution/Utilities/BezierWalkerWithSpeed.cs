@@ -11,10 +11,14 @@ namespace BezierSolution
 		public BezierSpline spline;
 		public GameObject boardComputer;
 		public GameObject frontDisplay;
+		public GameObject endFrontDisplay;
 		public GameObject oldFrontDisplay;
 		public Sprite newDisplay;
+		public Sprite endDisplay;
 		public GameObject[] lightsArray;
 		public GameObject[] lightsArray2;
+
+		public AudioSource ambientSound;
 
 		public TravelMode travelMode;
 		private int count = 0;
@@ -23,7 +27,7 @@ namespace BezierSolution
 
 		public BezierSpline[] mySplines;
 
-		public float speed = 5f;
+		public float speed;
 		[SerializeField]
 		[Range( 0f, 1f )]
 		private float m_normalizedT = 0f;
@@ -37,14 +41,32 @@ namespace BezierSolution
 		}
 
 		IEnumerator switchSpline(){
-			yield return new WaitForSeconds(2f);
 			if(count < mySplines.Length){
 				if(count == 1){
-					// switch sprite
+					yield return new WaitForSeconds(3f);
+				} else if( count == 3){
+					yield return new WaitForSeconds(3f);
+				} else if( count == 2){
+					yield return new WaitForSeconds(5f);
+				}
+
+				spline = mySplines[count];
+				m_normalizedT = 0f;
+				onPathCompletedCalledAt1 = false;
+				onPathCompletedCalledAt0 = false;
+				isGoingForward = true;
+				
+
+				// GO AROUND ACTIONS
+				if(count == 1){
+					yield return new WaitForSeconds(1f);
+
+					// CHANGE DISPLAYS
 					SpriteRenderer mySpriteRenderer = boardComputer.GetComponent<SpriteRenderer>();
 					mySpriteRenderer.sprite = newDisplay;
 					frontDisplay.SetActive(true);
 					oldFrontDisplay.SetActive(false);
+
 					// TURN ALL THE LIGHTS ON
 					foreach (GameObject lightObject in lightsArray)
 					{
@@ -63,13 +85,54 @@ namespace BezierSolution
 							lightComponent2.enabled = false;
 						}
 					}
-				} 
-				spline = mySplines[count];
-				m_normalizedT = 0f;
-				onPathCompletedCalledAt1 = false;
-				onPathCompletedCalledAt0 = false;
-				isGoingForward = true;
+				}
 				count++;
+				if(count == 3){
+					speed = 2f;
+				} else if(count > 0){					
+					speed = 3f;
+				}
+			}
+			else{
+
+
+				yield return new WaitForSeconds(2f);
+
+				// TURN ALL THE LIGHTS ON
+				foreach (GameObject lightObject in lightsArray)
+				{
+					Light lightComponent = lightObject.GetComponent<Light>();
+					if (lightComponent != null)						
+					{
+						lightComponent.enabled = false;
+					}
+				}
+				// TURN ALL THE LIGHTS OFF
+				foreach (GameObject lightObject in lightsArray2)
+				{
+					Light lightComponent2 = lightObject.GetComponent<Light>();
+					if (lightComponent2 != null)
+					{
+						lightComponent2.enabled = true;
+					}
+				}
+				// CHANGE DISPLAYS
+				frontDisplay.SetActive(false);
+				endFrontDisplay.SetActive(true);
+				SpriteRenderer mySpriteRenderer = boardComputer.GetComponent<SpriteRenderer>();
+				mySpriteRenderer.sprite = endDisplay;
+
+				vibrateStrength = 0f;
+
+
+				// TURN OFF MOTOR 
+				ambientSound.volume = 0.2f;
+				yield return new WaitForSeconds(2f);
+				ambientSound.volume = 0.1f;
+				yield return new WaitForSeconds(4f);
+				ambientSound.volume = 0f;
+
+
 			}
 		}
 		IEnumerator wait(){
@@ -101,6 +164,8 @@ namespace BezierSolution
 					}
 		}
 
+		public float vibrateStrength;
+
 		private void Update()
 		{
 			Execute( Time.deltaTime );
@@ -108,6 +173,9 @@ namespace BezierSolution
 
 		public override void Execute( float deltaTime )
 		{
+
+			 // randomly vibrate the object on all 3 dimensison, similar like an helicopter would
+       		transform.position = new Vector3(transform.position.x + Random.Range(-vibrateStrength, vibrateStrength), transform.position.y + Random.Range(-vibrateStrength, vibrateStrength), transform.position.z + Random.Range(-vibrateStrength, vibrateStrength));
 			
 			float targetSpeed = ( isGoingForward ) ? speed : -speed;
 
@@ -118,18 +186,38 @@ namespace BezierSolution
 
 			bool movingForward = MovingForward;
 
+			// pitch sound higher when drone initiates landing
+			if(count == 0){
+				if(m_normalizedT >= 0.98f){
+					ambientSound.pitch = 1.2f;
+					ambientSound.volume = 0.4f;
+				} else if(m_normalizedT >= 0.95f){
+					ambientSound.pitch = 1f;
+					ambientSound.volume = 0.4f;
+				} else if(m_normalizedT >= 0.89f){
+					ambientSound.pitch = 0.8f;
+					ambientSound.volume = 0.4f;
+				}
+			}
+
+			// move drone slower when spline ends
 			if( m_normalizedT >= 0.98f){
 				speed = 0.5f;
 			}
-			if( m_normalizedT >= 0.95f){
+			else if( m_normalizedT >= 0.95f){
 				speed = 1f;
 			}
 			else if( m_normalizedT >= 0.89f){
 				speed = 3f;
-			} else{
-				speed = 5f;
 			}
 
+			// randomly vibrate the object on all 3 dimensison, similar like an helicopter would
+			transform.position = new Vector3(transform.position.x + Random.Range(-vibrateStrength, vibrateStrength), transform.position.y + Random.Range(-vibrateStrength, vibrateStrength), transform.position.z + Random.Range(-vibrateStrength, vibrateStrength));
+			if(count == 1 || count == 4){
+				lookAt = LookAtMode.None;
+			} else if (count == 3){
+				lookAt = LookAtMode.Forward;
+			}
 			if( lookAt == LookAtMode.Forward )
 			{
 				BezierSpline.Segment segment = spline.GetSegmentAt( m_normalizedT );
