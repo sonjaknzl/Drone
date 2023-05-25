@@ -19,6 +19,8 @@ namespace BezierSolution
 		public GameObject[] lightsArray2;
 
 		public AudioSource ambientSound;
+		public AudioSource announcement;
+		public AudioSource endAnnouncement;
 
 		public TravelMode travelMode;
 		private int count = 0;
@@ -66,6 +68,9 @@ namespace BezierSolution
 					mySpriteRenderer.sprite = newDisplay;
 					frontDisplay.SetActive(true);
 					oldFrontDisplay.SetActive(false);
+
+					//PLAY ANNOUNCEMENT
+					announcement.Play();
 
 					// TURN ALL THE LIGHTS ON
 					foreach (GameObject lightObject in lightsArray)
@@ -123,6 +128,9 @@ namespace BezierSolution
 				mySpriteRenderer.sprite = endDisplay;
 
 				vibrateStrength = 0f;
+
+				//PLAY ANNOUNCEMENT
+				endAnnouncement.Play();
 
 
 				// TURN OFF MOTOR 
