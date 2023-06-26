@@ -198,10 +198,10 @@ namespace BezierSolution
 			if(count == 0){
 				if(m_normalizedT >= 0.98f){
 					ambientSound.pitch = 1.2f;
-					ambientSound.volume = 0.4f;
+					ambientSound.volume = 0.3f;
 				} else if(m_normalizedT >= 0.95f){
 					ambientSound.pitch = 1f;
-					ambientSound.volume = 0.4f;
+					ambientSound.volume = 0.35f;
 				} else if(m_normalizedT >= 0.89f){
 					ambientSound.pitch = 0.8f;
 					ambientSound.volume = 0.4f;
